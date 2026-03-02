@@ -1,0 +1,344 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ──────────────────────────────────────────────────────────────────
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum OAuthProvider {
+  GOOGLE
+}
+
+enum TrackType {
+  DSA
+  CP
+  INTERVIEW
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum PlatformSource {
+  LEETCODE
+  CODEFORCES
+  ATCODER
+  CODECHEF
+  HACKERRANK
+  CUSTOM
+}
+
+enum Language {
+  PYTHON
+  CPP
+  JAVA
+  JAVASCRIPT
+}
+
+enum SubmissionStatus {
+  PENDING
+  RUNNING
+  ACCEPTED
+  WRONG_ANSWER
+  TIME_LIMIT_EXCEEDED
+  MEMORY_LIMIT_EXCEEDED
+  RUNTIME_ERROR
+  COMPILATION_ERROR
+  INTERNAL_ERROR
+}
+
+enum ProgressStatus {
+  ATTEMPTED
+  SOLVED
+}
+
+enum AchievementTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+// ─── User ───────────────────────────────────────────────────────────────────
+
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  username         String    @unique
+  passwordHash     String?
+  name             String
+  avatar           String?
+  bio              String?
+
+  // Gamification
+  xp               Int       @default(0)
+  level            Int       @default(1)
+  streak           Int       @default(0)
+  longestStreak    Int       @default(0)
+  lastActiveDate   DateTime?
+
+  // Auth
+  role             Role          @default(USER)
+  isEmailVerified  Boolean       @default(false)
+  emailVerifyToken String?       @unique
+  resetToken       String?       @unique
+  resetTokenExpiry DateTime?
+
+  // OAuth
+  oauthProvider    OAuthProvider?
+  oauthId          String?
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  lastLoginAt      DateTime?
+
+  // Relations
+  submissions      Submission[]
+  progress         UserProgress[]
+  achievements     UserAchievement[]
+  refreshTokens    RefreshToken[]
+
+  @@index([email])
+  @@index([username])
+  @@index([oauthProvider, oauthId])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+}
+
+// ─── Topics & Organization ──────────────────────────────────────────────────
+
+model Topic {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  icon        String?
+  track       TrackType
+  order       Int
+
+  subtopics   Subtopic[]
+  problems    Problem[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([track])
+  @@index([order])
+}
+
+model Subtopic {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String
+  description String?
+  order       Int
+
+  topicId     String
+  topic       Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  problems    Problem[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([topicId, slug])
+  @@index([topicId])
+}
+
+// ─── Problems ───────────────────────────────────────────────────────────────
+
+model Problem {
+  id              String     @id @default(cuid())
+  title           String
+  slug            String     @unique
+
+  // Content (Markdown)
+  description     String     @db.Text
+  constraints     String     @db.Text
+  examples        Json       // [{input, output, explanation}]
+  editorial       String?    @db.Text
+  hints           Json?      // string[]
+
+  // Classification
+  difficulty      Difficulty
+  tags            String[]
+  trackType       TrackType
+
+  // Topic relationship
+  topicId         String?
+  topic           Topic?     @relation(fields: [topicId], references: [id])
+  subtopicId      String?
+  subtopic        Subtopic?  @relation(fields: [subtopicId], references: [id])
+
+  // Platform info
+  platformSource  PlatformSource?
+  platformUrl     String?
+  rating          Int?       // CF-style rating for CP
+
+  // Complexity hints
+  timeComplexity  String?
+  spaceComplexity String?
+
+  // Boilerplate code per language
+  boilerplate     Json?      // { PYTHON: "...", CPP: "...", ... }
+
+  // Meta
+  isPublished     Boolean    @default(false)
+  order           Int?
+
+  // Stats
+  totalSubmissions Int       @default(0)
+  totalSolved      Int       @default(0)
+  acceptanceRate   Float?
+
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  // Relations
+  testCases       TestCase[]
+  submissions     Submission[]
+  progress        UserProgress[]
+
+  @@index([slug])
+  @@index([difficulty])
+  @@index([trackType])
+  @@index([topicId])
+  @@index([subtopicId])
+  @@index([isPublished])
+}
+
+model TestCase {
+  id             String   @id @default(cuid())
+  problemId      String
+  problem        Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  input          String   @db.Text
+  expectedOutput String   @db.Text
+  explanation    String?
+
+  isHidden       Boolean  @default(false)
+  isExample      Boolean  @default(false)
+  order          Int      @default(0)
+
+  createdAt      DateTime @default(now())
+
+  @@index([problemId])
+}
+
+// ─── Submissions ────────────────────────────────────────────────────────────
+
+model Submission {
+  id          String           @id @default(cuid())
+
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  problemId   String
+  problem     Problem          @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  code        String           @db.Text
+  language    Language
+
+  // Results
+  status      SubmissionStatus @default(PENDING)
+  runtime     Int?             // milliseconds
+  memory      Int?             // KB
+  testsPassed Int              @default(0)
+  testsTotal  Int              @default(0)
+
+  // Error info
+  errorMessage   String?       @db.Text
+  failedTestCase Json?         // {input, expectedOutput, actualOutput}
+
+  createdAt   DateTime         @default(now())
+
+  @@index([userId])
+  @@index([problemId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId, problemId])
+}
+
+// ─── Progress ───────────────────────────────────────────────────────────────
+
+model UserProgress {
+  id           String         @id @default(cuid())
+
+  userId       String
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  problemId    String
+  problem      Problem        @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  status       ProgressStatus
+
+  bestRuntime  Int?
+  bestMemory   Int?
+  attempts     Int            @default(1)
+
+  isBookmarked Boolean        @default(false)
+  notes        String?        @db.Text
+
+  firstAttemptAt DateTime     @default(now())
+  lastAttemptAt  DateTime     @default(now())
+  solvedAt       DateTime?
+
+  @@unique([userId, problemId])
+  @@index([userId])
+  @@index([problemId])
+  @@index([status])
+}
+
+// ─── Achievements ───────────────────────────────────────────────────────────
+
+model Achievement {
+  id          String          @id @default(cuid())
+  name        String          @unique
+  description String
+  icon        String?
+
+  criteria    Json            // {type: "solve_count", value: 10, ...}
+  xpReward    Int             @default(0)
+  tier        AchievementTier @default(BRONZE)
+  isHidden    Boolean         @default(false)
+
+  createdAt   DateTime        @default(now())
+
+  users       UserAchievement[]
+}
+
+model UserAchievement {
+  id            String      @id @default(cuid())
+
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  unlockedAt    DateTime    @default(now())
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+}
