@@ -4,6 +4,7 @@ import { generateAccessToken, generateRefreshToken, getRefreshTokenExpiry } from
 import { loginSchema } from "@/lib/validations/auth";
 import { successResponse, validationErrorResponse, errorResponse } from "@/lib/utils/api-response";
 import { logger } from "@/lib/utils/logger";
+import { setAuthCookies } from "@/lib/auth/cookies";
 
 export async function POST(request: Request) {
   try {
@@ -44,7 +45,8 @@ export async function POST(request: Request) {
       data: { lastLoginAt: new Date() },
     });
 
-    logger.info("User logged in", { userId: user.id });
+    // Set the cookies using helper
+    await setAuthCookies(accessToken, refreshToken, user.id);
 
     return successResponse({
       user: {

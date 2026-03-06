@@ -1,18 +1,27 @@
 import { successResponse, errorResponse } from "@/lib/utils/api-response";
 import { logger } from "@/lib/utils/logger";
-import { cookies } from "next/headers";
+import { clearAuthCookies } from "@/lib/auth/cookies";
 import { prisma } from "@/lib/db/prisma";
+import { cookies } from "next/headers";
 
 export async function POST() {
   try {
     const cookieStore = await cookies();
     const refreshToken = cookieStore.get("refreshToken")?.value;
 
-    if (refreshToken) {
-      await prisma.refreshToken.deleteMany({ where: { token: refreshToken } });
-    }
+    let userId: string | undefined;
 
-    cookieStore.delete("refreshToken");
+    if (refreshToken) {
+      const stored = await prisma.refreshToken.findUnique({
+        where: { token: refreshToken },
+        select: { userId: true },
+      });
+      if (stored) {
+        userId = stored.userId;
+        await prisma.refreshToken.delete({ where: { token: refreshToken } });
+      }
+    }
+    await clearAuthCookies(userId);
 
     return successResponse({ message: "Logged out successfully" });
   } catch (error) {

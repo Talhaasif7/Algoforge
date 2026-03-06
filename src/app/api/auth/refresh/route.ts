@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db/prisma";
 import { generateAccessToken } from "@/lib/auth/jwt";
 import { successResponse, unauthorizedResponse, errorResponse } from "@/lib/utils/api-response";
 import { logger } from "@/lib/utils/logger";
+import { setAccessTokenCookie } from "@/lib/auth/cookies";
 import { cookies } from "next/headers";
 
 export async function POST() {
@@ -30,6 +31,8 @@ export async function POST() {
       email: stored.user.email,
       role: stored.user.role,
     });
+
+    await setAccessTokenCookie(accessToken, stored.user.id);
 
     return successResponse({ accessToken });
   } catch (error) {

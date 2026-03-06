@@ -3,8 +3,8 @@ import crypto from "crypto";
 import { prisma } from "../db/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback-dev-secret";
-const ACCESS_EXPIRY = process.env.JWT_ACCESS_EXPIRY || "15m";
-const REFRESH_EXPIRY_DAYS = 7;
+export const ACCESS_EXPIRY = process.env.JWT_ACCESS_EXPIRY || "15m";
+export const REFRESH_EXPIRY_DAYS = 7;
 
 export interface JWTPayload {
   userId: string;
