@@ -1,14 +1,8 @@
 import { cookies } from "next/headers";
 import { logger } from "../utils/logger";
-import { ACCESS_EXPIRY, REFRESH_EXPIRY_DAYS } from "./jwt";
+import { COOKIES, ACCESS_EXPIRY, REFRESH_EXPIRY_DAYS } from "./constants";
 
 const IS_PROD = process.env.NODE_ENV === "production";
-
-// Use constants for cookie keys and durations
-export const COOKIES = {
-    ACCESS_TOKEN: "accessToken",
-    REFRESH_TOKEN: "refreshToken",
-} as const;
 
 // Dynamic expiry based on environment variables
 const ACCESS_TOKEN_MAX_AGE = parseDurationToSeconds(ACCESS_EXPIRY);

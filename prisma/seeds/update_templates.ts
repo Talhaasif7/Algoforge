@@ -16,7 +16,7 @@ sol = Solution()
 data = sys.stdin.read().split("\\n")
 nums = json.loads(data[0])
 target = int(data[1])
-print(json.dumps(sol.twoSum(nums, target)))`,
+print(json.dumps(sol.twoSum(nums, target), separators=(',', ':')))`,
         JAVASCRIPT: `/**
  * @param {number[]} nums
  * @param {number} target
@@ -373,7 +373,7 @@ else:
     print(Solution().maxDepth(nodes[0]))`,
     },
     // CP problems - simpler templates
-    "cf-4a-watermelon": {
+    "cf-4A-watermelon": {
         PYTHON: `w = int(input())
 # Your solution: print YES or NO
 `,
@@ -386,7 +386,7 @@ int main() {
     return 0;
 }`,
     },
-    "cf-71a-way-too-long-words": {
+    "cf-71A-way-too-long-words": {
         PYTHON: `n = int(input())
 for _ in range(n):
     word = input()
@@ -404,7 +404,7 @@ int main() {
     }
 }`,
     },
-    "cf-1a-theatre-square": {
+    "cf-1A-theatre-square": {
         PYTHON: `n, m, a = map(int, input().split())
 # Calculate minimum flagstones
 `,
@@ -417,12 +417,12 @@ int main() {
     return 0;
 }`,
     },
-    "cf-110a-nearly-lucky-number": {
+    "cf-110A-nearly-lucky-number": {
         PYTHON: `n = input()
 # Count lucky digits (4 and 7), check if count is lucky
 `,
     },
-    "cf-617a-elephant": {
+    "cf-617A-elephant": {
         PYTHON: `x = int(input())
 # Minimum steps (can move 1-5 at a time)
 `,
@@ -435,7 +435,7 @@ const TESTCASE_UPDATES: Record<string, { input: string; expectedOutput: string; 
         { input: "[2,7,11,15]\n9", expectedOutput: "[0,1]", isHidden: false },
         { input: "[3,2,4]\n6", expectedOutput: "[1,2]", isHidden: false },
         { input: "[3,3]\n6", expectedOutput: "[0,1]", isHidden: true },
-        { input: "[1,5,8,3,9]\n11", expectedOutput: "[1,3]", isHidden: true },
+        { input: "[1,5,8,3,9]\n11", expectedOutput: "[2,3]", isHidden: true },
     ],
     "best-time-to-buy-and-sell-stock": [
         { input: "[7,1,5,3,6,4]", expectedOutput: "5", isHidden: false },
@@ -485,14 +485,44 @@ const TESTCASE_UPDATES: Record<string, { input: string; expectedOutput: string; 
     ],
 };
 
+interface FullProblemContent {
+    description: string;
+    constraints: string;
+}
+
+const PROBLEM_CONTENT_UPDATES: Record<string, FullProblemContent> = {
+    "two-sum": {
+        description: "Given an array of integers `nums` and an integer `target`, return indices of the two numbers such that they add up to `target`.\n\nYou may assume that each input would have exactly one solution, and you may not use the same element twice.\n\nYou can return the answer in any order.",
+        constraints: "- `2 <= nums.length <= 10^4` \n- `-10^9 <= nums[i] <= 10^9` \n- `-10^9 <= target <= 10^9` \n- **Only one valid answer exists.**"
+    },
+    "cf-4A-watermelon": {
+        description: "One hot summer day Pete and his friend Billy decided to buy a watermelon. They chose the biggest and the ripest one, in their opinion. After that the watermelon was weighed, and the scales showed $w$ kilos. They rushed home, dying of thirst, and decided to divide the berry, however they faced a hard problem.\n\nPete and Billy are great fans of even numbers, that's why they want to divide the watermelon in such a way that each of the two parts weighs even number of kilos, at the same time it is not obligatory that the parts are equal. The boys are extremely tired and want to start their meal as soon as possible, that's why you should help them and find out, if they can divide the watermelon in the way they want. For sure, each of them should get a part of positive weight.",
+        constraints: "The first (and the only) input line contains integer number $w$ ($1 \\le w \\le 100$) — the weight of the watermelon bought by the boys."
+    }
+};
+
 async function main() {
-    console.log("🔄 Updating boilerplate templates and test cases...\n");
+    console.log("🔄 Updating problem content, boilerplates, and test cases...\n");
+
+    // Update Problem Content (Description/Constraints)
+    for (const [slug, content] of Object.entries(PROBLEM_CONTENT_UPDATES)) {
+        const updated = await prisma.problem.updateMany({
+            where: { slug },
+            data: {
+                description: content.description,
+                constraints: content.constraints
+            }
+        });
+        if (updated.count > 0) {
+            console.log(`  ✅ Updated content for "${slug}"`);
+        }
+    }
 
     // Update boilerplates
     for (const [slug, boilerplate] of Object.entries(BOILERPLATE_UPDATES)) {
         const updated = await prisma.problem.updateMany({
             where: { slug },
-            data: { boilerplate: boilerplate as any }
+            data: { boilerplate: JSON.stringify(boilerplate) }
         });
         if (updated.count > 0) {
             console.log(`  ✅ Updated boilerplate for "${slug}"`);

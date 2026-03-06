@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { COOKIES } from "@/lib/auth/constants";
 
 // Routes that require authentication
 const protectedPaths = ["/dashboard", "/profile", "/leaderboard"];
@@ -10,7 +11,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const accessToken =
     request.headers.get("Authorization")?.replace("Bearer ", "") ||
-    request.cookies.get("accessToken")?.value;
+    request.cookies.get(COOKIES.ACCESS_TOKEN)?.value;
 
   const isProtected = protectedPaths.some((p) => pathname.startsWith(p));
   const isAuthPage = authPaths.some((p) => pathname.startsWith(p));

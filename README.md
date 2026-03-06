@@ -26,8 +26,11 @@ AlgoForge is a modern algorithmic coding platform built with Next.js 16, featuri
 Before setting up the project, make sure you have the following installed:
 
 - **Node.js** (v20+ recommended)
-- **Docker Manager** (e.g., Docker Desktop) for running the code execution worker.
 - **Git**
+- **Compilers/Interpreters** (Required for the local code execution engine):
+  - **Python 3** (`python`)
+  - **GCC/G++** (`g++` for C++)
+  - **Java JDK** (`javac` and `java`)
 
 ## Setup Instructions
 
@@ -65,25 +68,13 @@ npx prisma db push
 
 ### 5. Seed the Data
 
-Populate the platform with curated DSA and CP problem sets:
+Populate the platform with curated DSA and CP problem sets, along with standard templates and a superuser account:
 
 ```bash
-# Seed DSA Track
-npx tsx prisma/seeds/seed_dsa_sheet.ts
-
-# Seed CP Track
-npx tsx prisma/seeds/seed_cp_sheet.ts
+npm run seed
 ```
 
-### 6. Start the Code Execution Worker
-
-Ensure Docker is running, then start the worker in a separate terminal:
-
-```bash
-npm run worker
-```
-
-### 7. Run the Development Server
+### 6. Run the Development Server
 
 ```bash
 npm run dev
@@ -97,6 +88,6 @@ Visit [http://localhost:3000](http://localhost:3000) to start coding!
 
 Code execution in AlgoForge is performed locally on the server for simplicity during development:
 1. **Submission**: User code is sent to dedicated API routes (`/api/submissions/submit` or `/run`).
-2. **Execution**: The server spawns a local process (e.g., `python`, `g++`, `node`) in a temporary directory (`tmp/executions`).
-3. **Safety**: Each execution is isolated by temporary file structures and has strict time limits to prevented infinite loops or resource exhaustion.
+2. **Execution**: The server spawns a local process using your machine's compilers (`python`, `g++`, `node`) in a temporary directory (`tmp/executions`).
+3. **Safety**: Each execution is isolated by temporary file structures and has strict time limits to prevent infinite loops or resource exhaustion.
 4. **Grading**: The execution engine runs the code against all test cases, captures output, and updates the database with results, XP, and streaks.

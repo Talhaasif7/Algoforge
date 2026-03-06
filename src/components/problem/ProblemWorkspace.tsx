@@ -123,6 +123,7 @@ export function ProblemWorkspace({ problem, testCases, user, previousCode }: Pro
                 <VisualizerPanel
                     code={code}
                     language={language}
+                    input={testCases[0]?.input}
                     onClose={() => setShowVisualizer(false)}
                 />
             )}

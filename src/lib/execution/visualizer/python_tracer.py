@@ -49,7 +49,7 @@ def tracer(frame, event, arg):
     
     # Only trace user code (the file we're running)
     filename = frame.f_code.co_filename
-    if filename != "/code/solution.py":
+    if filename != "solution.py":
         return tracer
     
     if step_count >= MAX_STEPS:
@@ -129,13 +129,13 @@ class StdoutCapture:
         pass
 
 # Read user code
-with open("/code/solution.py", "r") as f:
+with open("solution.py", "r") as f:
     user_code = f.read()
 
 # Read stdin if available
 stdin_data = ""
 try:
-    with open("/code/input.txt", "r") as f:
+    with open("input.txt", "r") as f:
         stdin_data = f.read()
 except FileNotFoundError:
     pass
@@ -151,7 +151,7 @@ sys.stdout = capture
 # Run with tracer
 error_info = None
 try:
-    compiled = compile(user_code, "/code/solution.py", "exec")
+    compiled = compile(user_code, "solution.py", "exec")
     sys.settrace(tracer)
     exec(compiled, {"__name__": "__main__", "__builtins__": __builtins__})
     sys.settrace(None)

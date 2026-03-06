@@ -4,17 +4,22 @@ import { submitCodeSchema } from "@/lib/validations/submission";
 import { successResponse, unauthorizedResponse, validationErrorResponse, errorResponse } from "@/lib/utils/api-response";
 import { logger } from "@/lib/utils/logger";
 import { processJob } from "@/lib/execution/service";
+import { cookies } from "next/headers";
+import { COOKIES } from "@/lib/auth/constants";
 
 export async function POST(request: Request) {
   try {
     // Auth check
-    const authHeader = request.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(COOKIES.ACCESS_TOKEN)?.value;
+
+    if (!token) {
       return unauthorizedResponse();
     }
+
     let payload;
     try {
-      payload = verifyAccessToken(authHeader.split(" ")[1]);
+      payload = verifyAccessToken(token);
     } catch {
       return unauthorizedResponse("Invalid or expired token");
     }
