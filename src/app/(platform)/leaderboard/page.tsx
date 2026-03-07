@@ -5,7 +5,11 @@ import { prisma } from "@/lib/db/prisma";
 
 async function getLeaderboardData() {
   const users = await prisma.user.findMany({
-    orderBy: { xp: "desc" },
+    orderBy: [
+      { xp: "desc" },
+      { submissions: { _count: "desc" } },
+      { streak: "desc" },
+    ],
     take: 50,
     select: {
       id: true,
@@ -13,6 +17,7 @@ async function getLeaderboardData() {
       xp: true,
       level: true,
       streak: true,
+      avatar: true,
       _count: {
         select: {
           submissions: { where: { status: "ACCEPTED" } }
@@ -68,7 +73,14 @@ export default async function LeaderboardPage() {
                 <div className="col-span-1 flex items-center">
                   {getRankIcon(rank)}
                 </div>
-                <div className="col-span-4">
+                <div className="col-span-4 flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-accent-purple to-accent-cyan text-xs font-bold text-white flex-none overflow-hidden">
+                    {user.avatar ? (
+                      <img src={user.avatar} alt={user.username} className="h-full w-full object-cover" />
+                    ) : (
+                      user.username.charAt(0).toUpperCase()
+                    )}
+                  </div>
                   <span className="font-semibold text-text-primary">{user.username}</span>
                 </div>
                 <div className="col-span-2 text-center">

@@ -6,6 +6,7 @@ import { StreakCalendar } from "@/components/tracks/StreakCalendar";
 import { prisma } from "@/lib/db/prisma";
 import { getUser } from "@/lib/auth/jwt";
 import { cookies } from "next/headers";
+import { COOKIES } from "@/lib/auth/constants";
 
 import { TrackFilters } from "@/components/tracks/TrackFilters";
 
@@ -65,7 +66,7 @@ export default async function DSATrackPage({
   });
 
   const cookieStore = await cookies();
-  const token = cookieStore.get("auth_token")?.value;
+  const token = cookieStore.get(COOKIES.ACCESS_TOKEN)?.value;
   const user = token ? await getUser(token) : null;
 
   let solvedProblemIds = new Set<string>();

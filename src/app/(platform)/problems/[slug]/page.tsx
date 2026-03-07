@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db/prisma";
 import { notFound } from "next/navigation";
 import { getUser } from "@/lib/auth/jwt";
 import { cookies } from "next/headers";
+import { COOKIES } from "@/lib/auth/constants";
 import { ProblemWorkspace } from "@/components/problem/ProblemWorkspace";
 
 interface ProblemPageProps {
@@ -31,7 +32,7 @@ export default async function ProblemPage({ params }: ProblemPageProps) {
   };
 
   const cookieStore = await cookies();
-  const token = cookieStore.get("auth_token")?.value;
+  const token = cookieStore.get(COOKIES.ACCESS_TOKEN)?.value;
   const user = token ? await getUser(token) : null;
 
   let previousCode = "";

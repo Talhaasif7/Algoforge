@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { GradientText } from "@/components/shared/GradientText";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { useAuthStore } from "@/stores/authStore";
 import { toast } from "sonner";
 
 export default function LoginPage() {
@@ -34,6 +35,9 @@ export default function LoginPage() {
       }
       if (data.data?.accessToken) {
         localStorage.setItem("accessToken", data.data.accessToken);
+      }
+      if (data.data?.user) {
+        useAuthStore.getState().setUser(data.data.user);
       }
       router.push("/dashboard");
     } catch {

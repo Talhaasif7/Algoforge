@@ -2,15 +2,22 @@ import { prisma } from "@/lib/db/prisma";
 import { verifyAccessToken } from "@/lib/auth/jwt";
 import { successResponse, unauthorizedResponse, errorResponse } from "@/lib/utils/api-response";
 import { logger } from "@/lib/utils/logger";
+import { cookies } from "next/headers";
+import { COOKIES } from "@/lib/auth/constants";
 
 export async function GET(request: Request) {
   try {
     const authHeader = request.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return unauthorizedResponse();
+    let token = authHeader?.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
+
+    if (!token) {
+      const cookieStore = await cookies();
+      token = cookieStore.get(COOKIES.ACCESS_TOKEN)?.value || null;
     }
 
-    const token = authHeader.split(" ")[1];
+    if (!token) {
+      return unauthorizedResponse();
+    }
     let payload;
     try {
       payload = verifyAccessToken(token);

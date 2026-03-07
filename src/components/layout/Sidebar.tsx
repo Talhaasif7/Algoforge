@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/uiStore";
+import { Logo } from "@/components/shared/Logo";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -35,15 +36,9 @@ export function Sidebar() {
         sidebarOpen ? "w-64" : "w-16"
       )}
     >
-      {/* Logo */}
       <div className="flex h-16 items-center border-b border-border-subtle px-4">
-        <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-bg-primary">
-            <span className="text-sm font-bold text-white">A</span>
-          </div>
-          {sidebarOpen && (
-            <span className="text-lg font-bold gradient-text">AlgoForge</span>
-          )}
+        <Link href="/">
+          <Logo size={32} showText={sidebarOpen} />
         </Link>
       </div>
 

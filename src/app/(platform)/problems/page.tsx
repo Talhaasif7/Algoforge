@@ -2,6 +2,7 @@ import { GradientText } from "@/components/shared/GradientText";
 import { prisma } from "@/lib/db/prisma";
 import { getUser } from "@/lib/auth/jwt";
 import { cookies } from "next/headers";
+import { COOKIES } from "@/lib/auth/constants";
 import Link from "next/link";
 import { CheckCircle2, Circle } from "lucide-react";
 import { ProblemsFilters } from "@/components/problem/ProblemsFilters";
@@ -76,7 +77,7 @@ export default async function ProblemsPage({
 
     // Get user progress and streak data
     const cookieStore = await cookies();
-    const token = cookieStore.get("auth_token")?.value;
+    const token = cookieStore.get(COOKIES.ACCESS_TOKEN)?.value;
     const user = token ? await getUser(token) : null;
 
     let solvedIds = new Set<string>();

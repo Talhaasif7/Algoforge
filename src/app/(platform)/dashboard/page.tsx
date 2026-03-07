@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db/prisma";
 import { getUser } from "@/lib/auth/jwt";
 import { cookies } from "next/headers";
 import { ActivityHeatmap } from "@/components/dashboard/ActivityHeatmap";
+import { COOKIES } from "@/lib/auth/constants";
 
 async function getDashboardData(userId: string | null) {
   if (!userId) {
@@ -63,7 +64,7 @@ async function getDashboardData(userId: string | null) {
 
 export default async function DashboardPage() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("auth_token")?.value;
+  const token = cookieStore.get(COOKIES.ACCESS_TOKEN)?.value;
   const user = token ? await getUser(token) : null;
   const data = await getDashboardData(user?.id || null);
 
@@ -122,8 +123,8 @@ export default async function DashboardPage() {
               >
                 <span className="font-medium text-text-primary">{sub.problem.title}</span>
                 <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${sub.problem.difficulty === "EASY" ? "bg-accent-green/10 text-accent-green" :
-                    sub.problem.difficulty === "MEDIUM" ? "bg-accent-yellow/10 text-accent-yellow" :
-                      "bg-difficulty-hard/10 text-difficulty-hard"
+                  sub.problem.difficulty === "MEDIUM" ? "bg-accent-yellow/10 text-accent-yellow" :
+                    "bg-difficulty-hard/10 text-difficulty-hard"
                   }`}>
                   {sub.problem.difficulty}
                 </span>
