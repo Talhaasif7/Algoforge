@@ -33,15 +33,18 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const isPublic = body.isPublic;
+    const { isPublic, publicDescription } = body;
 
     if (typeof isPublic !== "boolean") {
-        return NextResponse.json({ error: "Invalid isPublic value" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid isPublic value" }, { status: 400 });
     }
 
     const updatedSubmission = await prisma.submission.update({
       where: { id: submissionId },
-      data: { isPublic },
+      data: {
+        isPublic,
+        publicDescription: isPublic ? publicDescription : null
+      },
     });
 
     return NextResponse.json({ data: updatedSubmission });

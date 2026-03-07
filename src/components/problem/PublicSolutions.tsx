@@ -4,12 +4,7 @@ import { useEffect, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Loader2, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { LanguageBadge } from "@/components/ui/LanguageBadge";
 
 interface PublicSolutionsProps {
   problemId: string;
@@ -18,7 +13,7 @@ interface PublicSolutionsProps {
 export function PublicSolutions({ problemId }: PublicSolutionsProps) {
   const [solutions, setSolutions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCode, setSelectedCode] = useState<{ code: string; username: string } | null>(null);
+  const [expandedSolution, setExpandedSolution] = useState<string | null>(null);
 
   const fetchSolutions = async () => {
     try {
@@ -60,11 +55,11 @@ export function PublicSolutions({ problemId }: PublicSolutionsProps) {
       {solutions.map((sol) => (
         <div
           key={sol.id}
-          className="rounded-xl border border-white/10 bg-surface-card p-4 transition-colors hover:bg-white/[0.03]"
+          className="rounded-xl border border-white/10 bg-surface-card p-4 transition-colors hover:bg-white/[0.01]"
         >
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-bold text-text-primary">
-              {sol.user.username}
+              {sol.user.name || `@${sol.user.username}`}
             </span>
             <span className="text-xs text-text-muted">
               {formatDistanceToNow(new Date(sol.createdAt), { addSuffix: true })}
@@ -72,42 +67,43 @@ export function PublicSolutions({ problemId }: PublicSolutionsProps) {
           </div>
 
           <div className="flex items-center gap-2 mb-4 flex-wrap">
-            <span className="rounded-md bg-white/5 px-2.5 py-1 text-[10px] font-bold text-text-muted border border-white/10 uppercase">
-              {sol.language}
-            </span>
+            <LanguageBadge language={sol.language} />
             {sol.runtime !== null && (
-              <span className="rounded-md bg-accent-cyan/10 px-2.5 py-1 text-[10px] font-bold text-accent-cyan border border-accent-cyan/20">
+              <span className="rounded-md bg-accent-cyan/10 px-2.5 py-1 text-[10px] font-bold text-accent-cyan border border-accent-cyan/20 font-mono">
                 {sol.runtime} ms
               </span>
             )}
             {sol.memory !== null && (
-              <span className="rounded-md bg-accent-purple/10 px-2.5 py-1 text-[10px] font-bold text-accent-purple border border-accent-purple/20">
+              <span className="rounded-md bg-accent-purple/10 px-2.5 py-1 text-[10px] font-bold text-accent-purple border border-accent-purple/20 font-mono">
                 {(sol.memory / 1024).toFixed(1)} MB
               </span>
             )}
           </div>
 
+          {sol.publicDescription && (
+            <div className="mb-4 rounded-md bg-white/5 p-3 text-xs text-text-secondary border border-white/5 relative overflow-hidden group border-l-2 border-l-accent-purple/50">
+              <p className="italic text-text-primary/90 leading-relaxed group-hover:text-white transition-colors">
+                "{sol.publicDescription}"
+              </p>
+            </div>
+          )}
+
           <button
-            onClick={() => setSelectedCode({ code: sol.code, username: sol.user.username })}
-            className="w-full rounded-md bg-white/5 py-2 text-xs font-medium text-white transition-colors hover:bg-white/10"
+            onClick={() => setExpandedSolution(expandedSolution === sol.id ? null : sol.id)}
+            className="w-full rounded-md bg-white/5 py-2 text-xs font-medium text-white transition-colors hover:bg-white/10 border border-white/10"
           >
-            View Solution
+            {expandedSolution === sol.id ? "Hide Solution" : "View Solution"}
           </button>
+
+          {expandedSolution === sol.id && (
+            <div className="mt-3 rounded-md overflow-hidden bg-black/40 border border-white/5 p-4 animate-in fade-in slide-in-from-top-2 duration-200 shadow-inner">
+              <pre className="text-xs font-mono text-text-secondary max-h-[400px] overflow-y-auto thin-scrollbar leading-relaxed">
+                <code className="block">{sol.code}</code>
+              </pre>
+            </div>
+          )}
         </div>
       ))}
-
-      <Dialog open={!!selectedCode} onOpenChange={(open) => !open && setSelectedCode(null)}>
-        <DialogContent className="max-w-3xl bg-surface-base border-white/10">
-          <DialogHeader>
-            <DialogTitle className="text-text-primary">Solution by {selectedCode?.username}</DialogTitle>
-          </DialogHeader>
-          <div className="mt-4 rounded-md overflow-hidden bg-black/40 border border-white/10 p-4 max-h-[60vh] overflow-y-auto">
-            <pre className="text-sm font-mono text-text-secondary">
-              <code>{selectedCode?.code}</code>
-            </pre>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
