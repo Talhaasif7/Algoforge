@@ -27,7 +27,7 @@ Before setting up the project, make sure you have the following installed:
 
 - **Node.js** (v20+ recommended)
 - **Git**
-- **Docker** (Required for the secure code execution engine)
+- **Docker** (Required for the secure code execution engine. Ensure **Docker Desktop is running** before executing code).
 
 ## Setup Instructions
 
@@ -102,6 +102,9 @@ Visit [http://localhost:3000](http://localhost:3000) to start coding!
 ## Code Execution Architecture
 
 AlgoForge uses a high-performance, secure code execution engine based on Docker isolation. Recent optimizations have transitioned the engine to a **batched execution model**:
+
+> [!IMPORTANT]
+> **First Run Delay**: When you run code for the first time, there will be a delay (30-60s) while Docker pulls the necessary slim images and builds the custom AlgoForge runners. Subsequent executions will be near-instant.
 
 1.  **Submission**: User code and a set of test cases are sent to the execution engine.
 2.  **Container Batching**: Instead of spinning up a separate container for every test case (which introduces significant overhead), the engine now creates **one isolated container per submission**.
