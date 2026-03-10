@@ -583,7 +583,16 @@ async function main() {
                     rating: prob.rating,
                     description: prob.description || scraped?.description || `Solve this problem on Codeforces: ${prob.title}`,
                     constraints: prob.constraints || scraped?.constraints || "See Codeforces for constraints.",
-                    boilerplate: prob.boilerplate || scraped?.boilerplate || DEFAULT_CP_BOILERPLATE,
+
+                    boilerplate: (() => {
+                        const base = JSON.parse(DEFAULT_CP_BOILERPLATE);
+                        let existing = {};
+                        try {
+                            if (prob.boilerplate) existing = typeof prob.boilerplate === "string" ? JSON.parse(prob.boilerplate) : prob.boilerplate;
+                            else if (scraped?.boilerplate) existing = typeof scraped.boilerplate === "string" ? JSON.parse(scraped.boilerplate) : scraped.boilerplate;
+                        } catch(e) {}
+                        return JSON.stringify({ ...base, ...existing });
+                    })(),
                     tags: JSON.stringify(prob.tags),
                     examples: JSON.stringify([]),
                     topicId: topic.id,

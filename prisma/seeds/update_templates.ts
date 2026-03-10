@@ -520,11 +520,14 @@ async function main() {
 
     // Update boilerplates
     for (const [slug, boilerplate] of Object.entries(BOILERPLATE_UPDATES)) {
-        const updated = await prisma.problem.updateMany({
-            where: { slug },
-            data: { boilerplate: JSON.stringify(boilerplate) }
-        });
-        if (updated.count > 0) {
+        const problem = await prisma.problem.findUnique({ where: { slug } });
+        if (problem) {
+            const existingBoilerplate = problem.boilerplate ? JSON.parse(problem.boilerplate) : {};
+            const mergedBoilerplate = { ...existingBoilerplate, ...boilerplate };
+            await prisma.problem.update({
+                where: { id: problem.id },
+                data: { boilerplate: JSON.stringify(mergedBoilerplate) }
+            });
             console.log(`  ✅ Updated boilerplate for "${slug}"`);
         } else {
             console.log(`  ⚠️  Problem "${slug}" not found`);

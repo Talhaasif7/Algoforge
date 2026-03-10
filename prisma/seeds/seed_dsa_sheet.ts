@@ -21,6 +21,58 @@ interface ProblemEntry {
     boilerplate?: string;
 }
 
+const DEFAULT_DSA_BOILERPLATE = JSON.stringify({
+    CPP: `#include <bits/stdc++.h>
+using namespace std;
+
+class Solution {
+public:
+    void solve() {
+        // Write your solution here
+    }
+};
+
+// --- Do not modify below ---
+int main() {
+    Solution sol;
+    sol.solve();
+    return 0;
+}`,
+    JAVA: `import java.util.*;
+
+class Solution {
+    public void solve() {
+        // Write your solution here
+    }
+}
+
+// --- Do not modify below ---
+public class Main {
+    public static void main(String[] args) {
+        Solution sol = new Solution();
+        sol.solve();
+    }
+}`,
+    PYTHON: `class Solution:
+    def solve(self):
+        # Write your solution here
+        pass
+
+# --- Do not modify below ---
+if __name__ == '__main__':
+    sol = Solution()
+    sol.solve()`,
+    JAVASCRIPT: `/**
+ * @return {void}
+ */
+var solve = function() {
+    // Write your solution here
+};
+
+// --- Do not modify below ---
+solve();`
+});
+
 interface TopicDef {
     name: string;
     slug: string;
@@ -562,7 +614,16 @@ async function main() {
                     platformUrl: `https://leetcode.com/problems/${prob.slug}/`,
                     description: prob.description || scraped?.description || `Solve this problem on LeetCode: ${prob.title}`,
                     constraints: prob.constraints || scraped?.constraints || "See LeetCode for constraints and examples.",
-                    boilerplate: prob.boilerplate || scraped?.boilerplate || null,
+
+                    boilerplate: (() => {
+                        const base = JSON.parse(DEFAULT_DSA_BOILERPLATE);
+                        let existing = {};
+                        try {
+                            if (prob.boilerplate) existing = typeof prob.boilerplate === "string" ? JSON.parse(prob.boilerplate) : prob.boilerplate;
+                            else if (scraped?.boilerplate) existing = typeof scraped.boilerplate === "string" ? JSON.parse(scraped.boilerplate) : scraped.boilerplate;
+                        } catch(e) {}
+                        return JSON.stringify({ ...base, ...existing });
+                    })(),
                     tags: JSON.stringify(prob.tags),
                     examples: JSON.stringify([]),
                     topicId: topic.id,
